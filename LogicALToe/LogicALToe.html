@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="https://i.ibb.co/R4Lk0GF/istockphoto-1132229113-612x612.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/qjkvKZg/istockphoto-1132229113-612x612-1.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom right, #1e1e1e, #222222);
+    color: white;
+}
+
+.container {
+    text-align: center;
+    position: relative; /* Agregamos posición relativa para el contenedor */
+    width: 100%;
+    max-width: 600px; /* Limitamos el ancho del contenedor para evitar que se extienda demasiado */
+    padding: 0 20px; /* Añadimos espaciado a los lados del contenedor */
+    box-sizing: border-box; /* Ajustamos el modelo de caja */
+    display: flex; /* Usamos flexbox */
+    flex-direction: column; /* Dirección de los elementos (columna) */
+    justify-content: center; /* Centramos verticalmente */
+    align-items: center; /* Centramos horizontalmente */
+}
+
+header {
+    margin-bottom: 20px; /* Añadimos espacio entre el encabezado y el tablero */
+}
+
+h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px; /* Ajustamos la distancia desde el tablero */
+    margin-top: 20px; /* Ajustamos la distancia desde el título */
+}
+
+.player-score {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 5px; /* Movemos un poco más hacia abajo */
+    color: turquoise; /* Cambiamos el color del texto a turquesa */
+    animation: blink-animation 1s infinite alternate; /* Animación de parpadeo */
+}
+
+@keyframes blink-animation {
+    0% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: lightblue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    cursor: pointer;
+}
+
+.restart-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: lightcoral;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.status {
+    font-size: 1.5em;
+    margin-top: 20px;
+    margin-bottom: 20px; /* Agregamos espacio abajo del mensaje de estado */
+}
+</style>
+<title>LogicAL Tic Tac Toe</title>
+</head>
+<body>
+<div class="container">
+    <header>
+        <marquee><h1>Tic Tac Toe</h1></marquee>
+        <div class="scoreboard">
+            <div class="player-score" id="playerXScore">Player X: 0</div>
+            <div class="player-score" id="playerOScore">Player O: 0</div>
+        </div>
+    </header>
+    <div class="board">
+        <div class="cell" data-cell-index="0"></div>
+        <div class="cell" data-cell-index="1"></div>
+        <div class="cell" data-cell-index="2"></div>
+        <div class="cell" data-cell-index="3"></div>
+        <div class="cell" data-cell-index="4"></div>
+        <div class="cell" data-cell-index="5"></div>
+        <div class="cell" data-cell-index="6"></div>
+        <div class="cell" data-cell-index="7"></div>
+        <div class="cell" data-cell-index="8"></div>
+    </div>
+    <div class="status"></div>
+    <button class="restart-btn">Restart Game</button>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const cells = document.querySelectorAll(".cell");
+    const restartBtn = document.querySelector(".restart-btn");
+    const status = document.querySelector(".status");
+    const playerXScore = document.getElementById("playerXScore");
+    const playerOScore = document.getElementById("playerOScore");
+
+    let currentPlayer = "X";
+    let gameActive = true;
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    let playerXWins = 0;
+    let playerOWins = 0;
+
+    const winningCombinations = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+
+    const handleCellClick = (e) => {
+        const cell = e.target;
+        const cellIndex = cell.getAttribute("data-cell-index");
+
+        if (gameState[cellIndex] !== "" || !gameActive) {
+            return;
+        }
+
+        gameState[cellIndex] = currentPlayer;
+        cell.textContent = currentPlayer;
+        cell.classList.add(currentPlayer);
+
+        if (checkWin()) {
+            endGame(false);
+        } else if (checkDraw()) {
+            endGame(true);
+        } else {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+        }
+    };
+
+    const checkWin = () => {
+        return winningCombinations.some((combination) => {
+            return combination.every((index) => {
+                return gameState[index] === currentPlayer;
+            });
+        });
+    };
+
+    const checkDraw = () => {
+        return gameState.every((cell) => cell !== "");
+    };
+
+    const endGame = (draw) => {
+        gameActive = false;
+        if (!draw) {
+            currentPlayer === "X" ? playerXWins++ : playerOWins++;
+            updateScore();
+            status.textContent = `${currentPlayer} wins!`;
+        } else {
+            status.textContent = "It's a draw!";
+        }
+    };
+
+    const updateScore = () => {
+        playerXScore.textContent = `Player X Score: ${playerXWins}`;
+        playerOScore.textContent = `Player O Score: ${playerOWins}`;
+    };
+
+    const restartGame = () => {
+        currentPlayer = "X";
+        gameActive = true;
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        cells.forEach((cell) => {
+            cell.textContent = "";
+            cell.classList.remove("X", "O");
+        });
+        status.textContent = "";
+    };
+
+    cells.forEach((cell) => {
+        cell.addEventListener("click", handleCellClick);
+    });
+
+    restartBtn.addEventListener("click", restartGame);
+});
+</script>
+</body>
+</html>
